@@ -1,0 +1,31 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>1899.12.30 00:00:00.000.409,C:\Users\Павел\Documents\RAD Studio\Projects\lab5\Unit1.pas=C:\Users\Павел\Documents\RAD Studio\Projects\lab5\USimulator.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.749,=C:\Users\Павел\Documents\RAD Studio\Projects\lab5\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.802,C:\Users\Павел\Documents\RAD Studio\Projects\lab5\Unit1.pas=C:\Users\Павел\Documents\RAD Studio\Projects\lab5\TNC.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.205,=C:\Users\Павел\Documents\RAD Studio\Projects\lab5\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.705,C:\Users\Paul\Documents\RAD Studio\Projects\Unit2.dfm=C:\Users\Paul\Documents\GitHub\Simulation\lab4\Simulation.dfm</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.931,C:\Users\Павел\Documents\RAD Studio\Projects\lab4\Simulation4.dproj=C:\Users\Павел\Documents\RAD Studio\Projects\lab4\Simulation5.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.659,=C:\Users\Павел\Documents\RAD Studio\Projects\lab5\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.181,C:\Users\Paul\Documents\RAD Studio\Projects\Project1.dproj=C:\Users\Paul\Documents\GitHub\Simulation\lab4\Simulation4.dproj</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.394,=C:\Users\Paul\Documents\GitHub\Simulation\lab4\UIntegrator.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.796,=C:\Users\Paul\Documents\GitHub\Simulation\lab4\UTargets.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.643,=C:\Users\Paul\Documents\RAD Studio\Projects\Unit2.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.705,C:\Users\Paul\Documents\RAD Studio\Projects\Unit2.pas=C:\Users\Paul\Documents\GitHub\Simulation\lab4\Simulation.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.981,=C:\Users\Павел\Documents\RAD Studio\Projects\lab4\Unit1.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.811,C:\Users\Павел\Documents\RAD Studio\Projects\lab5\Unit1.pas=C:\Users\Павел\Documents\RAD Studio\Projects\lab5\USQL.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.220,C:\Users\Павел\Documents\RAD Studio\Projects\lab4\Unit1.pas=C:\Users\Павел\Documents\RAD Studio\Projects\lab4\Threads.pas</Transaction>
+    <Transaction>1899.12.30 00:00:00.000.898,=C:\Users\Павел\Documents\RAD Studio\Projects\lab4\Unit1.pas</Transaction>
+  </Transactions>
+	<ProjectSortOrder AutoSort="0" SortType="0">
+    <File Path="Simulation.pas"/>
+    <File Path="Simulation.dfm"/>
+    <File Path="Threads.pas"/>
+    <File Path="UIntegrator.pas"/>
+    <File Path="UTargets.pas"/>
+    <File Path="USimulator.pas"/>
+    <File Path="USQL.pas"/>
+    <File Path="TNC.pas"/>
+  </ProjectSortOrder>
+</BorlandProject>

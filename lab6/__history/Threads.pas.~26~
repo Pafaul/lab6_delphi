@@ -1,0 +1,92 @@
+unit Threads;
+
+interface
+
+uses
+  System.Classes;
+
+type
+  TRunThread = class(TThread)
+  private
+    { Private declarations }
+  protected
+    procedure Execute; override;
+  end;
+
+  TVisThread = class(TThread)
+  private
+    { Private declarations }
+  protected
+    procedure Execute; override;
+  end;
+
+implementation
+
+{ 
+  Important: Methods and properties of objects in visual components can only be
+  used in a method called using Synchronize, for example,
+
+      Synchronize(UpdateCaption);  
+
+  and UpdateCaption could look like,
+
+    procedure TRunThread.UpdateCaption;
+    begin
+      Form1.Caption := 'Updated in a thread';
+    end; 
+    
+    or 
+    
+    Synchronize( 
+      procedure 
+      begin
+        Form1.Caption := 'Updated in thread via an anonymous method' 
+      end
+      )
+    );
+    
+  where an anonymous method is passed.
+  
+  Similarly, the developer can call the Queue method with similar parameters as 
+  above, instead passing another TThread class as the first parameter, putting
+  the calling thread in a queue with the other thread.
+    
+}
+
+{ TRunThread }
+
+uses Simulation, Utargets(*Winapi.Windows, Winapi.Messages*);
+
+var time: real;
+
+procedure TRunThread.Execute;
+begin
+  { Place thread code here }
+  Simulator.PreRun;
+  time := Simulator.T0;
+  while time < Simulator.TK do begin
+    Simulator.Run(time);
+    time := time + Simulator.DT;
+    if Simulator.DT = 1 then sleep(1000);
+  end;
+  Simulator.PostRun;
+end;
+
+procedure TVisThread.Execute;
+var localtime: real;
+begin
+  localTime := time;
+  while true do
+  if localtime <> time then begin
+    Synchronize(procedure
+                begin
+                  TForm2(Simulator.Owner).SimulationImage.Canvas.Lock;
+                  //SendMessage(Simulator.Owner.Handle, WM_DRAW_SIMULATION, 0, 0);
+                  TForm2(Simulator.Owner).DrawSimulation(Simulator);
+                  TForm2(Simulator.Owner).SimulationImage.Canvas.Unlock;
+                end);
+    localTime := time;
+  end;
+end;
+
+end.

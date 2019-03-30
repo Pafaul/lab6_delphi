@@ -1,0 +1,80 @@
+unit USQL;
+
+interface
+
+  uses Data.DB, Data.Win.ADODB, SysUtils;
+
+  type
+
+  TADOQueryPtr = ^TADOQuery;
+
+  TWriteToSQLAbs = class
+    public
+      procedure WriteSQL(s: String; var TQ: TADOQuery);
+   end;
+
+   TWriteToSQLSIM = class(TWriteToSQLAbs)
+     public
+       procedure WriteSQLSAM(a: array of real; var TQ: TADOQuery);
+       procedure WriteSQLEXP(a: array of string; var TQ: TADOQuery);
+
+       procedure ReplaceSQLSAMTD(a: array of real; var TQ: TADOQuery);
+   end;
+
+implementation
+
+  procedure TWriteToSQLAbs.WriteSQL(s: string; var TQ: TADOQuery);
+  begin
+    TQ.SQL.Add(s);
+    TQ.ExecSQL;
+    TQ.SQL.Clear;
+  end;
+
+ (*************************************************************)
+
+  procedure TWriteToSQLSIM.WriteSQLSAM(a: array of Real; var TQ: TADOQuery);
+  //a[0] - id, a[1] - exp, a[2] - pmin, a[3] - pmax, a[4] - preq, a[5] - targetDestroyed
+  var s:string;
+  function ConvertToWrite(str:string): string;
+  var
+    i: Integer;
+  begin
+    for i := 1 to length(str) do
+      if str[i] <> ',' then result[i] := str[i]
+      else result[i] := '.';
+  end;
+  begin
+    s := 'INSERT INTO SAMMISSILE (idSAM, idExp, pmin, pmax, preq, targetDestroyed) VALUES (';
+    s := s + intToStr(round(a[0])) + ', ';
+    s := s + intToStr(round(a[1])) + ', ';
+    s := s + floatToStr(a[2]) + ', ';
+    s := s + floatToStr(a[3]) + ', ';
+    s := s + floatToStr(a[4]) + ', ';
+    if a[5] = 1 then s := s + '1)' else s := s + '0)';
+    self.WriteSQL(s, TQ);
+  end;
+
+ (*************************************************************)
+
+  procedure TWriteToSQLSIM.WriteSQLEXP(a: array of string; var TQ: TADOQuery);
+  var s: string;
+  begin
+    s := 'INSERT INTO EXPERIMENT (';
+    if length(a) = 1 then s := s + 'idExp) VALUES (' + a[0] + ')';
+    if length(a) = 2 then s := s + 'idExp, Time) VALUES (' + a[0] + ', ''' + a[1] + ''')';
+    {if length(a) = 3 then s := s + 'idExp, Date, Time) VALUES (' +
+                                   a[0] + ', ' + a[1] + ', ' + a[3] + ')';}
+    self.WriteSQL(s, TQ);
+  end;
+
+  procedure TWriteToSQLSIM.ReplaceSQLSAMTD(a: array of Real; var TQ: TADOQuery);
+  var s: string;
+  I: Integer;
+  begin
+    for i := 0 to length(a)-1 do begin
+      s := 'UPDATE SAMMISSILE SET TargetDestroyed = ' + floatToStr(a[i]) +
+           ' WHERE idSAM = ' + floatToStr(i);
+      self.WriteSQL(s, TQ);
+    end;
+  end;
+end.

@@ -1,0 +1,213 @@
+unit USimulator;
+
+interface
+
+  uses UTargets, TNC, USQL, UIntegrator, System.Generics.Collections, SysUtils, Classes, VCL.Forms;
+
+  type
+
+  TSimulator = class  //симулятор
+      public
+        Targets: TTargetList;
+        SAMMissileList: TTargetList;
+        Integrator: TTargetIntegrator;
+
+        CP: TCommandPost;
+        RLS: TRLS;
+
+        FT: Text;
+
+        T0: real;
+        TK: real;
+        DT: real;
+
+        DrawSimulation: TNotifyEvent;
+        Owner: TForm;
+        SQLWrite: TWriteToSQLSIM;
+
+        constructor Create(initParam: array of real);
+        procedure PreRun;
+        procedure Run(time: real);
+        procedure PostRun;
+        procedure CreateCP(initParam: array of real);
+        procedure CreateRLS(initParam: array of real);
+        procedure CreateTarget(ttype: TTargetType; initParam: array of real);
+        procedure writeSQLSAM(num: integer);
+
+        destructor Destroy;
+      protected
+        realDt: real;
+        Exp: integer;
+
+    end;
+
+implementation
+
+uses Simulation;
+
+  (*************************************************************)
+
+  constructor TSimulator.Create(initParam: array of real);  //конструктор симулятора
+  var a: array of string;
+  begin
+    self.T0 := initParam[0];
+    self.TK := initParam[1];
+    self.DT := initParam[2];
+    self.Targets := TTargetList.Create;
+    self.SAMMissileList := TTargetList.Create;
+    self.Owner := Form2;
+    assign(self.FT, 'Temp.txt');
+    rewrite(self.FT);
+    writeln(self.FT, '  time ;  Dist ; Course ;   V   ;  Type');
+    close(self.FT);
+
+    try
+      setLength(a,2);
+      randomize;
+      a[0] := IntToStr(random(100));
+      a[1] := TimeToStr(now);
+      self.Exp := strToInt(a[0]);
+      SQLWrite.WriteSQLEXP(a, TForm2(Owner).ADOQuery);
+    except
+
+    end;
+
+  end;
+
+  (*************************************************************)
+
+  procedure TSimulator.CreateCP(initParam: array of Real);   //создание КП в симуляторе
+  begin
+    self.CP := TCommandPost.Create(InitParam);
+  end;
+
+  (*************************************************************)
+
+  procedure TSimulator.CreateRLS(initParam: array of Real);  //аналогично, но для РЛС
+  begin
+    self.RLS := TRLS.Create(InitParam);
+    self.RLS.WriteSQLSAMMIS := self.writeSQLSAM;
+  end;
+
+  (*************************************************************)
+
+  procedure TSimulator.CreateTarget(ttype: TTargetType; initParam: array of Real);  //тоже самое, но для целей
+  begin
+    if ttype = Air then self.Targets.AddTarget(Air, initParam);
+    if ttype = Mis then self.Targets.AddTarget(Mis, initParam);
+    if ttype = SamMis then self.SAMMissileList.AddTarget(SamMis, initParam);
+  end;
+
+  (*************************************************************)
+
+  procedure TSimulator.PreRun;    //подготовка к запуску
+  var i: integer;
+  //a[0] - id, a[1] - exp, a[2] - pmin, a[3] - pmax, a[4] - preq, a[5] - targetDestroyed
+  begin
+    assign(self.FT, 'temp.txt');
+    append(self.FT);
+
+    self.RLS.SetTargetList(self.Targets);
+    self.RLS.SetSamMissileList(self.SAMMissileList);
+    self.RLS.SetCP(self.CP.CurPosition);
+  end;
+
+  (*************************************************************)
+
+  procedure TSimulator.Run(time: real);                      //сам процесс, тут много и больно, поэтому не надо
+  var item: integer; flag: boolean;
+      Target: TTarget; newLine: boolean;
+      SamMissile: TSAMMissile;
+      (*time: real;*) i: Integer;
+      CurrentTime: TDateTime;
+      s: String;
+  begin
+
+    newLine := False;
+
+    for i := 0 to self.Targets.Count-1 do
+      self.Targets[i].CalcCourse(self.CP.InitPosition);
+
+    (*time := self.T0;
+    while Time < self.Tk do begin*)
+
+    if self.Dt = 1 then begin CurrentTime := Now; s := TimeToStr(CurrentTime); end;
+
+      for item := 0 to self.Targets.Count-1 do begin
+        Target := self.Targets.Items[item];
+        if Target.Destroyed = NotDestroyed then begin
+          self.Integrator.Run(Target.CalcTarget, time, time+dt);
+          flag := RLS.Peleng(time, Target);
+
+          if flag then begin
+            if self.DT = 1 then write(self.FT, s, ';')
+            else write(self.FT, time:7:3);
+
+            write(self.FT, Target.CurPosition.x:7:3, ';', Target.CurPosition.y:7:3, ';', self.Targets[item].V:8:3);
+
+            if Target.TargetType = Air then write(self.FT, ' Aircraft')
+            else write(self.FT, ' Missile');
+            newLine := flag;
+          end;//if flag
+        end;
+      end;//for item
+
+      for item := 0 to self.SAMMissileList.Count-1 do begin
+        SamMissile := TSAMMissile(self.SAMMissileList[item]);
+        if SamMissile.Destroyed = NotDestroyed then
+        begin
+          self.Integrator.Run(SamMissile.CalcTarget, time, time+dt);
+          SamMissile.CheckTarget;
+        end;
+      end;
+
+      time := time + self.DT;
+      if newLine then writeln(self.FT, '');
+      //Self.DrawSimulation(self);
+
+      if self.DT = 1 then begin
+        CurrentTime := Now;
+        s := TimeToStr(CurrentTime);
+      end;
+//    end;
+  end;//procedure
+
+  (*************************************************************)
+
+  procedure TSimulator.PostRun;
+  var arr: array of real; i: integer;
+  begin
+    Close(self.FT);
+    setLength(arr, SAMMissileList.Count);
+    for i := 0 to SAMMissileList.Count-1 do
+      arr[i] := TSAMMissile(SAMMissileList[i]).isLoze;
+    self.SQLWrite.ReplaceSQLSAMTD(arr, TForm2(Owner).ADOQuery);
+  end;
+
+  (*************************************************************)
+
+  procedure TSimulator.writeSQLSAM(num: Integer);
+  var arr: array of real;
+  begin
+    setLength(arr, 6);
+    arr[0] := num;
+    arr[1] := self.Exp;
+    arr[2] := TSAMMissile(SAMMissileList[num]).pmin;
+    arr[3] := TSAMMissile(SAMMissileList[num]).pmax;
+    arr[4] := TSAMMissile(SAMMissileList[num]).preq;
+    arr[5] := TSAMMissile(SAMMissileList[num]).isLoze;
+    self.SQLWrite.WriteSQLSAM(arr, TForm2(Owner).ADOQuery);
+  end;
+
+  (*************************************************************)
+
+  destructor TSimulator.Destroy;
+  begin
+    self.Integrator.Free;
+    self.Targets.Free;
+    self.CP.Free;
+    self.RLS.Free;
+    self.SQLWrite.Free;
+  end;
+
+end.
